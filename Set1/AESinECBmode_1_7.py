@@ -1,3 +1,5 @@
+from gf256 import GF256LT
+
 # https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
 # openssl enc -aes-128-ecb -K 59454c4c4f57205355424d4152494e45 -base64 -d -in 7.txt -out 7_d.txt
 # AES 128
@@ -98,6 +100,8 @@ def KeyExpansion(key_byte):
 		for b in range(4):
 			for c in range(4):
 				key[b].append(w[(a*4)+c][b])
+		if a != 10 and a != 0:
+			key = InvMixColumns(key)
 		keys.append(key)
 	return keys
 
@@ -108,7 +112,7 @@ def InvShiftRows(state):
 		state[i] = a
 	return state
 
-def InvSubBytes(state): # TODO https://en.wikipedia.org/wiki/Rijndael_S-box
+def InvSubBytes(state): # https://en.wikipedia.org/wiki/Rijndael_S-box
 	c = [1,0,1,0,0,0,0,0]
 	new_state = [ [], [], [], [] ]
 	for i in range(4):
@@ -121,35 +125,14 @@ def InvSubBytes(state): # TODO https://en.wikipedia.org/wiki/Rijndael_S-box
 
 def InvMixColumns(state):
 	result = [ [], [], [], [] ]
-	print state
 	mix_columns = [ [14, 11, 13, 9], [9, 14, 11, 13], [13, 9, 14, 11], [11, 13, 9, 14] ]
-	print mix_columns
-	mix = 0
 	for i in range(4):
 		for j in range(4):
+			mix = 0
 			for k in range(4):
-				mix = (mix ^ state[k][j]*mix_columns[j][k])%256
+				mix = (mix ^ int(GF256LT(state[k][j])*GF256LT(mix_columns[i][k])))
 			result[i].append(mix)
 	return result
-
-
-def i2P(sInt):
-    """Convert an integer into a polynomial"""
-    return [(sInt >> i) & 1
-            for i in reversed(range(sInt.bit_length()))] 
-
-def MultGF256(i1, i2):
-	p1 = i2P(i1)
-	p2 = i2P(i2)
-	p = 0
-	while p2:
-		if p2 & 1:
-			p ^= p1
-		p1 <<= 1
-		if p1 & 256:
-			p1 ^= polyred
-		p2 >>= 1
-	return p & 255
 
 def XorStates(state1, state2):
 	result = [ [], [], [], [] ]
@@ -157,6 +140,7 @@ def XorStates(state1, state2):
 		for j in range(4):
 			result[i].append(state1[i][j]^state2[i][j])
 	return result
+
 
 key = "YELLOW SUBMARINE"
 key_hex = key.encode("hex")
@@ -190,65 +174,31 @@ for block in blocks: # per cada block de 16 bytes
 
 key_expanded = KeyExpansion(key_byte) # 44 keys de 4 bytes
 
+for i in range(len(key_expanded)-1):
+	if i == 0:
+		Round = XorStates(states[0], key_expanded[len(key_expanded)-1])
+		#print i, matrix_to_hex(states[0])
+		#print "key", i, matrix_to_hex(key_expanded[len(key_expanded)-1]), len(key_expanded)-1
+	else:
+		#print i, matrix_to_hex(Round)
+		Round = InvSubBytes(Round)
+		#print i, matrix_to_hex(Round)
+		Round = InvShiftRows(Round)
+		#print i, matrix_to_hex(Round)
+		Round = InvMixColumns(Round)
+		#print i, matrix_to_hex(Round)
+		#print "key", i, matrix_to_hex(key_expanded[len(key_expanded)-1-i]), len(key_expanded)-1-i
+		Round = XorStates(Round, key_expanded[len(key_expanded)-1-i])
 
-# round[ 0].iinput -> 69c4e0d86a7b0430d8cdb78070b4c55a
-print matrix_to_hex(states[0])
-# round[ 0].ik_sch -> 13111d7fe3944a17f307a78b4d2b30c5
-print matrix_to_hex(key_expanded[10])
-# round[ 1].istart -> 7ad5fda789ef4e272bca100b3d9ff59f
-test = XorStates(states[0], key_expanded[10])
-print matrix_to_hex(test)
-# round[ 1].is_box -> bdb52189f261b63d0b107c9e8b6e776e
-test = InvSubBytes(test)
-print matrix_to_hex(test)
-# round[ 1].is_row -> bd6e7c3df2b5779e0b61216e8b10b689
-test = InvShiftRows(test)
-print matrix_to_hex(test)
-# round[ 1].im_col -> 4773b91ff72f354361cb018ea1e6cf2c
-test = InvMixColumns(test)
-print matrix_to_hex(test)
-# round[ 1].ik_sch -> 13aa29be9c8faff6f770f58000f7bf03
-print matrix_to_hex(key_expanded[9])
-# round[ 2].istart -> 54d990a16ba09ab596bbf40ea111702f
-test = XorStates(test, key_expanded[9])
-print matrix_to_hex(test)
-
-
-# DOING
-# GF(256) finite field multiplication
-# https://en.wikipedia.org/wiki/Finite_field_arithmetic#Multiplication
-#print MultGF256(131,87)
-
-
-
-# TODO: key expansion equivalent inverse cipher 
-
-
-# for i in range(len(key_expanded)-1):
-# 	if i == 0:
-# 		print len(key_expanded)-1
-# 		Round = XorStates(states[0], key_expanded[len(key_expanded)-1])
-# 		print matrix_to_hex(Round)
-# 	else:
-# 		print len(key_expanded)-1-i
-# 		print matrix_to_hex(key_expanded[len(key_expanded)-1-i])
-# 		Round = InvShiftRows(Round)
-# 		Round = InvSubBytes(Round)
-# 		Round = XorStates(Round, key_expanded[len(key_expanded)-1-i])
-# 		Round = InvMixColumns(Round)
-# 		print matrix_to_hex(Round)
-
-# Round = InvShiftRows(Round)
-# Round = InvSubBytes(Round)
-# Round = XorStates(Round, key_expanded[0])
-# print matrix_to_hex(Round)
+#print i+1, matrix_to_hex(Round)
+Round = InvSubBytes(Round)
+#print i+1, matrix_to_hex(Round)
+Round = InvShiftRows(Round)
+#print i+1, matrix_to_hex(Round)
+#print "key", i+1, matrix_to_hex(key_expanded[0]), 0
+Round = XorStates(Round, key_expanded[0])
+print matrix_to_hex(Round)#.decode("hex").encode("base64")
 
 # let's try first with one single state:
 #print states[0]
 #print matrix_to_hex(states[0])
-
-
-
-#is_box = InvSubBytes(states[0])
-#print is_box
-#print matrix_to_hex(is_box)
