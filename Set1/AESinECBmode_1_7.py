@@ -4,20 +4,8 @@ from gf256 import GF256LT
 # openssl enc -aes-128-ecb -K 59454c4c4f57205355424d4152494e45 -base64 -d -in 7.txt -out 7_d.txt
 # AES 128
 # 10 cycles of repetition
-# InvCipher(byte in[4*Nb], byte out[4*Nb], word w[Nb*(Nr+1)])
-# 	byte state[4,Nb]
-# 	state = in
-# 	AddRoundKey(state, w[Nr*Nb, (Nr+1)*Nb-1])
-# 	for round = Nr-1 step -1 downto 1
-# 		InvShiftRows(state)
-# 		InvSubBytes(state)
-# 		AddRoundKey(state, w[round*Nb, (round+1)*Nb-1])
-# 		InvMixColumns(state)
-# 	InvShiftRows(state)
-# 	InvSubBytes(state)
-# 	AddRoundKey(state, w[0, Nb-1])
-# 	out = state
 # Nr = 10, Nb = 4, Nk = 4
+
 SBox = (0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
         0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
         0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
@@ -141,15 +129,26 @@ def XorStates(state1, state2):
 			result[i].append(state1[i][j]^state2[i][j])
 	return result
 
+def RoundBlock(state, key_expanded):
+	Round = XorStates(state, key_expanded[len(key_expanded)-1])
+	for i in range(1, len(key_expanded)-1):
+		Round = InvSubBytes(Round)
+		Round = InvShiftRows(Round)
+		Round = InvMixColumns(Round)
+		Round = XorStates(Round, key_expanded[len(key_expanded)-1-i])
+	Round = InvSubBytes(Round)
+	Round = InvShiftRows(Round)
+	Round = XorStates(Round, key_expanded[0])
+	return Round
 
 key = "YELLOW SUBMARINE"
 key_hex = key.encode("hex")
 key_byte = bytearray.fromhex(key_hex)
 
 ##### TEST: #####
-CIPHERTEXT = "69c4e0d86a7b0430d8cdb78070b4c55a"
-KEY = "000102030405060708090a0b0c0d0e0f"
-key_byte = bytearray.fromhex(KEY)
+#CIPHERTEXT = "69c4e0d86a7b0430d8cdb78070b4c55a"
+#KEY = "000102030405060708090a0b0c0d0e0f"
+#key_byte = bytearray.fromhex(KEY)
 #####
 
 f = open('7.txt', 'r')
@@ -161,8 +160,10 @@ encrypted_data_hex = encrypted_data_base64.decode("base64").encode("hex")
 blocks = [bytearray.fromhex(encrypted_data_hex[i:i + 32]) for i in xrange(0, len(encrypted_data_hex), 32)]
 
 ##### TEST: #####
-blocks = [bytearray.fromhex(CIPHERTEXT)]
+#blocks = [bytearray.fromhex(CIPHERTEXT)]
 #####
+
+key_expanded = KeyExpansion(key_byte) # 44 keys de 4 bytes
 
 states = []
 for block in blocks: # per cada block de 16 bytes
@@ -172,33 +173,8 @@ for block in blocks: # per cada block de 16 bytes
 			state[i].append(block[(j*4)+i])
 	states.append(state)
 
-key_expanded = KeyExpansion(key_byte) # 44 keys de 4 bytes
-
-for i in range(len(key_expanded)-1):
-	if i == 0:
-		Round = XorStates(states[0], key_expanded[len(key_expanded)-1])
-		#print i, matrix_to_hex(states[0])
-		#print "key", i, matrix_to_hex(key_expanded[len(key_expanded)-1]), len(key_expanded)-1
-	else:
-		#print i, matrix_to_hex(Round)
-		Round = InvSubBytes(Round)
-		#print i, matrix_to_hex(Round)
-		Round = InvShiftRows(Round)
-		#print i, matrix_to_hex(Round)
-		Round = InvMixColumns(Round)
-		#print i, matrix_to_hex(Round)
-		#print "key", i, matrix_to_hex(key_expanded[len(key_expanded)-1-i]), len(key_expanded)-1-i
-		Round = XorStates(Round, key_expanded[len(key_expanded)-1-i])
-
-#print i+1, matrix_to_hex(Round)
-Round = InvSubBytes(Round)
-#print i+1, matrix_to_hex(Round)
-Round = InvShiftRows(Round)
-#print i+1, matrix_to_hex(Round)
-#print "key", i+1, matrix_to_hex(key_expanded[0]), 0
-Round = XorStates(Round, key_expanded[0])
-print matrix_to_hex(Round)#.decode("hex").encode("base64")
-
-# let's try first with one single state:
-#print states[0]
-#print matrix_to_hex(states[0])
+decrypted = ""
+for state in states:
+	d = matrix_to_hex(RoundBlock(state, key_expanded))
+	decrypted += d
+print decrypted.decode("hex")
