@@ -1,4 +1,6 @@
 from operator import itemgetter
+from binascii import hexlify
+import base64
 
 def XORcipher(string_ascii):
 	english="ETAOINSHRDLU"
@@ -22,7 +24,7 @@ def XORcipher(string_ascii):
 		score_dict[i] = score
 		decrypted_dict[i] = ''.join(decrypted)
 
-	key, value = max(score_dict.iteritems(), key=lambda a:a[1])
+	key, value = max(score_dict.items(), key=lambda a:a[1])
 	#print ("Key: %s - %s, score %s and output: %s" 
     #     % (key, chr(key), value, decrypted_dict[key]))
 	return {'key':key, 'decrypted': decrypted_dict[key]}
@@ -36,11 +38,11 @@ def hamming_distance(s1, s2):
 			diffs += 1
 	return diffs
 
-f = open('6.txt', 'r')
+f = open('sources/6.txt', 'r')
 encrypted_data_base64 = ""
 for line in f :
 	encrypted_data_base64 += line.strip('\n')
-encrypted_data_ascii = encrypted_data_base64.decode("base64")
+encrypted_data_ascii = base64.b64decode(encrypted_data_base64).decode('utf-8')
 
 KEYSIZE_candidates = []
 for KEYSIZE in range(2,41):
@@ -53,13 +55,13 @@ KEYSIZE_candidates = sorted(KEYSIZE_candidates, key=itemgetter('value'))
 
 for i in range(10):
 	ks = KEYSIZE_candidates[i]['KEYSIZE']
-	print "-"*100
-	print "KEYSIZE:", ks
+	print("-"*100)
+	print("KEYSIZE:", ks)
 	blocks = []
 	tblocks = [""]*ks
 	key = ""
 	decrypted = [""]*len(encrypted_data_ascii)
-	for j in range(len(encrypted_data_ascii)/ks):
+	for j in range(int(len(encrypted_data_ascii)/ks)):
 		blocks.append(encrypted_data_ascii[ks*j:ks*(j+1)])
 	for k in range(ks):
 		for l in range(len(blocks)):
@@ -70,6 +72,5 @@ for i in range(10):
 		key += chr(subkey)
 		for m in range(len(tdecrypted)):
 			decrypted[k+m*ks] = tdecrypted[m]
-	print "KEY:", key
-	print "OUTPUT:",''.join(decrypted)
-
+	print("KEY:", key)
+	print("OUTPUT:",''.join(decrypted))

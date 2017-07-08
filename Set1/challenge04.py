@@ -1,12 +1,9 @@
 import operator
-# The hex encoded string has been XOR'd against a single character. Find the key, decrypt the message. 
-#string_hex = raw_input("Enter hex string: ")
-string_hex1 = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
+
+# One of the 60-character strings in the file has been encrypted by single-character XOR. 
 
 def XORcipher(string_hex):
-	string_dec = string_hex.decode("hex")
-	#print "string_hex: ", string_hex
-	#print "string_dec: ", string_dec
+	string_dec = (''.join([chr(int(''.join(c), 16)) for c in zip(string_hex[0::2], string_hex[1::2])]))
 	english="ETAOINSHRDLU"
 	english+=english.lower()
 	score = [-1]*256
@@ -16,7 +13,6 @@ def XORcipher(string_hex):
 		decrypted = ""
 		for x in string_dec:
 			decrypted+=chr(ord(x)^i)
-		# print i, chr(i), decrypted
 		for a in english: # more frequent characters in english
 			if decrypted.find(a)!=-1: 
 				score[i]+=2
@@ -36,25 +32,19 @@ def XORcipher(string_hex):
 		for e in range(128, 256):
 			if decrypted.find(chr(e))!=-1: 
 				score[i]-=50
-
 		dict[i]=score[i]
 		decrypted_array[i]=decrypted
 	sorted_score = sorted(dict.items(), key=operator.itemgetter(1))
-	#print sorted_score
-	#print "max score:", sorted_score[255][1]
 	result = {}
 	for j in range(246, 256):
-		#print sorted_score[j][0]
-		#print decrypted_array[sorted_score[j][0]]
 		if sorted_score[j][1] > 40: # parameter to avoid non legible characters (negative score)
-			#print sorted_score[j][0], "- score:", sorted_score[j][1]
 			result[sorted_score[j][0]]=decrypted_array[sorted_score[j][0]]
-		#print sorted_score[j][0], "-", chr(sorted_score[j][0]), ":",decrypted_array[sorted_score[j][0]]
 	return result
 
+f = open('sources/4.txt', 'r')
 
-a = XORcipher(string_hex1)
-for key, value in a.items():
-	print key, "-", chr(key), "-", value
-	#print ' '.join(str(ord(c)) for c in value)
-print "------------------------------------------------------------------------------------------------------------------------------------"
+for line in f:
+	results=XORcipher(line.strip('\n'))
+	for key, value in results.items():
+		print(line.strip('\n'))
+		print(key, "-", chr(key), "-", value)

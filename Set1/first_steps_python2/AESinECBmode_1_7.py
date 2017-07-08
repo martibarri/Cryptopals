@@ -56,7 +56,6 @@ def RotWord(w):
 	return rot
 
 def SubWord(w):
-	c = [1,1,0,0,0,1,1,0]
 	subwords = []
 	for i in range(4):
 		hex_byte = "{0:#0{1}x}".format(w[i],4)

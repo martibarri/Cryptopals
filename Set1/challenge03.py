@@ -1,12 +1,10 @@
 import operator
+from binascii import unhexlify, hexlify
 # The hex encoded string has been XOR'd against a single character. Find the key, decrypt the message. 
-#string_hex = raw_input("Enter hex string: ")
 string_hex1 = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
 
 def XORcipher(string_hex):
-	string_dec = string_hex.decode("hex")
-	#print "string_hex: ", string_hex
-	#print "string_dec: ", string_dec
+	string_dec = unhexlify(string_hex).decode('utf-8')
 	english="ETAOINSHRDLU"
 	english+=english.lower()
 	score = [-1]*256
@@ -16,7 +14,7 @@ def XORcipher(string_hex):
 		decrypted = ""
 		for x in string_dec:
 			decrypted+=chr(ord(x)^i)
-		# print i, chr(i), decrypted
+		# print(i, chr(i), decrypted)
 		for a in english: # more frequent characters in english
 			if decrypted.find(a)!=-1: 
 				score[i]+=2
@@ -54,7 +52,6 @@ def XORcipher(string_hex):
 
 
 a = XORcipher(string_hex1)
+print("------ key -", "char", "- decrypted string ------")
 for key, value in a.items():
-	print key, "-", chr(key), "-", value
-	#print ' '.join(str(ord(c)) for c in value)
-print "------------------------------------------------------------------------------------------------------------------------------------"
+	print(key, "-", chr(key), "-", value)
