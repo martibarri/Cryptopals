@@ -38,18 +38,11 @@ def XORcipher(string_hex):
 		dict[i]=score[i]
 		decrypted_array[i]=decrypted
 	sorted_score = sorted(dict.items(), key=operator.itemgetter(1))
-	#print sorted_score
-	#print "max score:", sorted_score[255][1]
 	result = {}
 	for j in range(246, 256):
-		#print sorted_score[j][0]
-		#print decrypted_array[sorted_score[j][0]]
 		if sorted_score[j][1] > 40: # parameter to avoid non legible characters (negative score)
-			#print sorted_score[j][0], "- score:", sorted_score[j][1]
 			result[sorted_score[j][0]]=decrypted_array[sorted_score[j][0]]
-		#print sorted_score[j][0], "-", chr(sorted_score[j][0]), ":",decrypted_array[sorted_score[j][0]]
 	return result
-
 
 a = XORcipher(string_hex1)
 print("------ key -", "char", "- decrypted string ------")

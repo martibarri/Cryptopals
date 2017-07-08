@@ -14,19 +14,14 @@ def XORcipher(string_ascii):
 		for x in range(len(string_ascii)):
 			decrypted_char=chr(ord(string_ascii[x])^i)
 			decrypted.append(decrypted_char)
-
 			for a in range(len(english)): # more frequent characters in english
 				if english[a]==decrypted_char:
 					score+=1
 			if ord(decrypted_char) < 32 or ord(decrypted_char)==127:
 				score-=1
-
 		score_dict[i] = score
 		decrypted_dict[i] = ''.join(decrypted)
-
 	key, value = max(score_dict.items(), key=lambda a:a[1])
-	#print ("Key: %s - %s, score %s and output: %s" 
-    #     % (key, chr(key), value, decrypted_dict[key]))
 	return {'key':key, 'decrypted': decrypted_dict[key]}
 
 def hamming_distance(s1, s2):
