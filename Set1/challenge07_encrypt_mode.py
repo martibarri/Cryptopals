@@ -189,7 +189,7 @@ def RoundBlock(state, key_expanded):
 		Round = SubBytes(Round)
 		Round = ShiftRows(Round)
 		Round = MixColumns(Round)
-		Round = XorStates(Round, key_expanded[i]) # error!
+		Round = XorStates(Round, key_expanded[i])
 	Round = SubBytes(Round)
 	Round = ShiftRows(Round)
 	Round = XorStates(Round, key_expanded[len(key_expanded)-1])

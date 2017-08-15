@@ -65,11 +65,13 @@ def SubWord(w):
 		subwords.append(SBox[y+(x*16)])
 	return subwords
 
-def KeyExpansion(key_byte):
+def InvKeyExpansion(key):
+	key_hex = hexlify(key.encode('utf-8')).decode('utf-8')
+	key_byte = bytearray.fromhex(key_hex)
 	w = []
 	Rcon = []
 	for i in range(0,4):
-		w.append(key_byte[i*4:(i+1)*4].encode('utf-8'))
+		w.append(key_byte[i*4:(i+1)*4])
 	for j in range(4,44):
 		tmp = w[j-1]
 		if j%4 == 0:
@@ -87,12 +89,37 @@ def KeyExpansion(key_byte):
 		keys.append(key)
 	return keys
 
-def InvShiftRows(state):
-	for i in range(1,4):
-		a = state[i][4-i:4]
-		a.extend(state[i][0:4-i])
-		state[i] = a
-	return state
+def KeyExpansion(key):
+	key_hex = hexlify(key.encode('utf-8')).decode('utf-8')
+	key_byte = bytearray.fromhex(key_hex)
+	w = []
+	Rcon = []
+	for i in range(0,4):
+		w.append(key_byte[i*4:(i+1)*4])
+	for j in range(4,44):
+		tmp = w[j-1]
+		if j%4 == 0:
+			tmp = bytearray(SubWord(RotWord(tmp))[k] ^ RCON(j/4)[k] for k in range(0,4))
+		new_w = bytearray(w[j-4][k] ^ tmp[k] for k in range(0,4))
+		w.append(new_w) #w[j] = w[j-4] ^ tmp
+	keys = [] # 11 keys 4x4 bytes matrix
+	for a in range(int(len(w)/4)):
+		key = [ [], [], [], [] ] # 4x4 bytes matrix
+		for b in range(4):
+			for c in range(4):
+				key[b].append(w[(a*4)+c][b])
+		keys.append(key)
+	return keys
+
+def SubBytes(state): # https://en.wikipedia.org/wiki/Rijndael_S-box
+	new_state = [ [], [], [], [] ]
+	for i in range(4):
+		for j in range(4):
+			hex_byte = "{0:#0{1}x}".format(state[i][j],4)
+			x = int(hex_byte[2], 16)
+			y = int(hex_byte[3], 16)
+			new_state[i].append(SBox[y+(x*16)])
+	return new_state
 
 def InvSubBytes(state): # https://en.wikipedia.org/wiki/Rijndael_S-box
 	c = [1,0,1,0,0,0,0,0]
@@ -104,6 +131,31 @@ def InvSubBytes(state): # https://en.wikipedia.org/wiki/Rijndael_S-box
 			y = int(hex_byte[3], 16)
 			new_state[i].append(invSBox[y+(x*16)])
 	return new_state
+
+def ShiftRows(state):
+	for i in range(1,4):
+		a = state[i][i:4]
+		a.extend(state[i][0:i])
+		state[i] = a
+	return state
+
+def InvShiftRows(state):
+	for i in range(1,4):
+		a = state[i][4-i:4]
+		a.extend(state[i][0:4-i])
+		state[i] = a
+	return state
+
+def MixColumns(state):
+	result = [ [], [], [], [] ]
+	mix_columns = [ [2, 3, 1, 1], [1, 2, 3, 1], [1, 1, 2, 3], [3, 1, 1, 2] ]
+	for i in range(4):
+		for j in range(4):
+			mix = 0
+			for k in range(4):
+				mix = (mix ^ int(GF256LT(state[k][j])*GF256LT(mix_columns[i][k])))
+			result[i].append(mix)
+	return result
 
 def InvMixColumns(state):
 	result = [ [], [], [], [] ]
@@ -123,7 +175,8 @@ def XorStates(state1, state2):
 			result[i].append(state1[i][j]^state2[i][j])
 	return result
 
-def RoundBlock(state, key_expanded):
+def aes128_InvRoundBlock(state, key):
+	key_expanded = InvKeyExpansion(key) # 44 keys de 4 bytes
 	Round = XorStates(state, key_expanded[len(key_expanded)-1])
 	for i in range(1, len(key_expanded)-1):
 		Round = InvSubBytes(Round)
@@ -135,30 +188,64 @@ def RoundBlock(state, key_expanded):
 	Round = XorStates(Round, key_expanded[0])
 	return Round
 
+def aes128_RoundBlock(state, key):
+	key_expanded = KeyExpansion(key) # 44 keys de 4 bytes
+	Round = XorStates(state, key_expanded[0])
+	for i in range(1, len(key_expanded)-1):
+		Round = SubBytes(Round)
+		Round = ShiftRows(Round)
+		Round = MixColumns(Round)
+		Round = XorStates(Round, key_expanded[i])
+	Round = SubBytes(Round)
+	Round = ShiftRows(Round)
+	Round = XorStates(Round, key_expanded[len(key_expanded)-1])
+	return Round
+
+def aes128_ecb_decrypt(ciphertext_hex, key):
+	blocks = [unhexlify(ciphertext_hex[i:i + 32]) for i in range(0, len(ciphertext_hex), 32)]
+	states = []
+	for block in blocks: # per cada block de 16 bytes
+		state = [ [], [], [], [] ] # state es una matriu de 4x4 bytes
+		for i in range(4):
+			for j in range(4):
+				state[i].append(block[(j*4)+i])
+		states.append(state)
+	decrypted_hex = ""
+	for state in states:
+		d = matrix_to_hex(aes128_InvRoundBlock(state, key))
+		decrypted_hex += d
+	return decrypted_hex
+
+def aes128_ecb_encrypt(plain_text_hex, key):
+	blocks = [unhexlify(plain_text_hex[i:i + 32]) for i in range(0, len(plain_text_hex), 32)]
+	states = []
+	for block in blocks: # per cada block de 16 bytes
+		state = [ [], [], [], [] ] # state es una matriu de 4x4 bytes
+		for i in range(4):
+			for j in range(4):
+				state[i].append(block[(j*4)+i])
+		states.append(state)
+
+	encrypted_hex = ""
+	for state in states:
+		d = matrix_to_hex(aes128_RoundBlock(state, key))
+		encrypted_hex += d
+	return encrypted_hex
+
 key = "YELLOW SUBMARINE"
-key_hex = hexlify(key.encode('utf-8')).decode('utf-8')
-key_byte = bytearray.fromhex(key_hex)
 
 f = open('sources/7.txt', 'r')
 encrypted_data_base64 = ""
 for line in f:
 	encrypted_data_base64 += line.strip('\n')
 encrypted_data_hex = hexlify(a2b_base64(encrypted_data_base64))
-# blocks of 128 bits / 16 bytes
-blocks = [unhexlify(encrypted_data_hex[i:i + 32]) for i in range(0, len(encrypted_data_hex), 32)]
 
-key_expanded = KeyExpansion(key_byte.decode('utf-8')) # 44 keys de 4 bytes
+decrypted_hex = aes128_ecb_decrypt(encrypted_data_hex, key)
+encrypted_hex = aes128_ecb_encrypt(decrypted_hex, key)
 
-states = []
-for block in blocks: # per cada block de 16 bytes
-	state = [ [], [], [], [] ] # state es una matriu de 4x4 bytes
-	for i in range(4):
-		for j in range(4):
-			state[i].append(block[(j*4)+i])
-	states.append(state)
+if encrypted_hex == encrypted_data_hex.decode("utf-8"):
+	print("---------- AES128 ECB MODE WORKS CORRECTLY ----------")
+else:
+	print("---------- ERROR! ----------")
 
-decrypted = ""
-for state in states:
-	d = matrix_to_hex(RoundBlock(state, key_expanded))
-	decrypted += d
-print(unhexlify(decrypted.encode('utf-8')).decode('utf-8'))
+print(unhexlify(decrypted_hex.encode('utf-8')).decode('utf-8'))
