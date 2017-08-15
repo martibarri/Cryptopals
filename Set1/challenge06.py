@@ -33,7 +33,7 @@ def hamming_distance(s1, s2):
 			diffs += 1
 	return diffs
 
-f = open('sources/6.txt', 'r')
+f = open('../sources/6.txt', 'r')
 encrypted_data_base64 = ""
 for line in f :
 	encrypted_data_base64 += line.strip('\n')

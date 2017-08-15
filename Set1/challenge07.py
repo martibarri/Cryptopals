@@ -234,7 +234,7 @@ def aes128_ecb_encrypt(plain_text_hex, key):
 
 key = "YELLOW SUBMARINE"
 
-f = open('sources/7.txt', 'r')
+f = open('../sources/7.txt', 'r')
 encrypted_data_base64 = ""
 for line in f:
 	encrypted_data_base64 += line.strip('\n')

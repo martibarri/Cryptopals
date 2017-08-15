@@ -41,7 +41,7 @@ def XORcipher(string_hex):
 			result[sorted_score[j][0]]=decrypted_array[sorted_score[j][0]]
 	return result
 
-f = open('sources/4.txt', 'r')
+f = open('../sources/4.txt', 'r')
 
 for line in f:
 	results=XORcipher(line.strip('\n'))

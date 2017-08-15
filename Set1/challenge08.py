@@ -1,6 +1,6 @@
 # Detect AES in ECB mode
 
-f = open('sources/8.txt', 'r')
+f = open('../sources/8.txt', 'r')
 encrypted_data_hex = []
 for line in f:
 	encrypted_data_hex.append(line.strip('\n'))
