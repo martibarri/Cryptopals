@@ -1,6 +1,7 @@
 from gf256 import GF256LT
 from binascii import hexlify, unhexlify, a2b_base64
 
+
 # https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
 # openssl enc -aes-128-ecb -K 59454c4c4f57205355424d4152494e45 -base64 -d -in 7.txt -out 7_d.txt
 # AES 128
@@ -201,15 +202,28 @@ def aes128_RoundBlock(state, key):
 	Round = XorStates(Round, key_expanded[len(key_expanded)-1])
 	return Round
 
-def aes128_ecb_decrypt(ciphertext_hex, key):
-	blocks = [unhexlify(ciphertext_hex[i:i + 32]) for i in range(0, len(ciphertext_hex), 32)]
+def pad_PKCS(text, l):
+	pad = l-len(text)
+	if pad > 0:
+		return text + bytes([pad]*pad)
+	return text
+
+def string_to_matrix_states(string):
+	blocks = [unhexlify(string[i:i + 32]) for i in range(0, len(string), 32)] # blocks of 16 bytes
+	blocks[len(blocks)-1] = pad_PKCS(blocks[len(blocks)-1], 16) # ensure fixed size blocks by adding padding (PKCS)
 	states = []
-	for block in blocks: # per cada block de 16 bytes
-		state = [ [], [], [], [] ] # state es una matriu de 4x4 bytes
+	for block in blocks:
+		state = [ [], [], [], [] ] # state is a 4x4 bytes matrix
 		for i in range(4):
 			for j in range(4):
 				state[i].append(block[(j*4)+i])
 		states.append(state)
+	if len(states) == 1:
+		return states[0]
+	return states
+
+def aes128_ecb_decrypt(ciphertext_hex, key):
+	states = string_to_matrix_states(ciphertext_hex)
 	decrypted_hex = ""
 	for state in states:
 		d = matrix_to_hex(aes128_InvRoundBlock(state, key))
@@ -217,15 +231,7 @@ def aes128_ecb_decrypt(ciphertext_hex, key):
 	return decrypted_hex
 
 def aes128_ecb_encrypt(plain_text_hex, key):
-	blocks = [unhexlify(plain_text_hex[i:i + 32]) for i in range(0, len(plain_text_hex), 32)]
-	states = []
-	for block in blocks: # per cada block de 16 bytes
-		state = [ [], [], [], [] ] # state es una matriu de 4x4 bytes
-		for i in range(4):
-			for j in range(4):
-				state[i].append(block[(j*4)+i])
-		states.append(state)
-
+	states = string_to_matrix_states(plain_text_hex)
 	encrypted_hex = ""
 	for state in states:
 		d = matrix_to_hex(aes128_RoundBlock(state, key))
