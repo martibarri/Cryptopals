@@ -232,20 +232,23 @@ def aes128_ecb_encrypt(plain_text_hex, key):
 		encrypted_hex += d
 	return encrypted_hex
 
-key = "YELLOW SUBMARINE"
 
-f = open('../sources/7.txt', 'r')
-encrypted_data_base64 = ""
-for line in f:
-	encrypted_data_base64 += line.strip('\n')
-encrypted_data_hex = hexlify(a2b_base64(encrypted_data_base64))
+if __name__ == '__main__':
 
-decrypted_hex = aes128_ecb_decrypt(encrypted_data_hex, key)
-encrypted_hex = aes128_ecb_encrypt(decrypted_hex, key)
+	key = "YELLOW SUBMARINE"
 
-if encrypted_hex == encrypted_data_hex.decode("utf-8"):
-	print("---------- AES128 ECB MODE WORKS CORRECTLY ----------")
-else:
-	print("---------- ERROR! ----------")
+	f = open('../sources/7.txt', 'r')
+	encrypted_data_base64 = ""
+	for line in f:
+		encrypted_data_base64 += line.strip('\n')
+	encrypted_data_hex = hexlify(a2b_base64(encrypted_data_base64))
 
-print(unhexlify(decrypted_hex.encode('utf-8')).decode('utf-8'))
+	decrypted_hex = aes128_ecb_decrypt(encrypted_data_hex, key)
+	encrypted_hex = aes128_ecb_encrypt(decrypted_hex, key)
+
+	if encrypted_hex == encrypted_data_hex.decode("utf-8"):
+		print("---------- AES128 ECB MODE WORKS CORRECTLY ----------")
+	else:
+		print("---------- ERROR! ----------")
+
+	print(unhexlify(decrypted_hex.encode('utf-8')).decode('utf-8'))
