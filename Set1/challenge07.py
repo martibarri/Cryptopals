@@ -43,6 +43,7 @@ invSBox = (0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9
            0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d)
 
 def matrix_to_hex(state):
+	"""Returns hex string from 4x4 byte matrix"""
 	state_hex = ""
 	for i in range(4):
 		for j in range(4):
@@ -66,8 +67,7 @@ def SubWord(w):
 		subwords.append(SBox[y+(x*16)])
 	return subwords
 
-def InvKeyExpansion(key):
-	key_hex = hexlify(key.encode('utf-8')).decode('utf-8')
+def InvKeyExpansion(key_hex):
 	key_byte = bytearray.fromhex(key_hex)
 	w = []
 	Rcon = []
@@ -90,8 +90,7 @@ def InvKeyExpansion(key):
 		keys.append(key)
 	return keys
 
-def KeyExpansion(key):
-	key_hex = hexlify(key.encode('utf-8')).decode('utf-8')
+def KeyExpansion(key_hex):
 	key_byte = bytearray.fromhex(key_hex)
 	w = []
 	Rcon = []
@@ -176,8 +175,13 @@ def XorStates(state1, state2):
 			result[i].append(state1[i][j]^state2[i][j])
 	return result
 
-def aes128_InvRoundBlock(state, key):
-	key_expanded = InvKeyExpansion(key) # 44 keys de 4 bytes
+def aes128_InvRoundBlock(state, key_hex):
+	"""
+	AES128 Block Cipher Decryption
+	key must be Hexadecimal
+	state must be a 4x4 byte matrix
+	"""
+	key_expanded = InvKeyExpansion(key_hex) # 44 keys of 4 bytes
 	Round = XorStates(state, key_expanded[len(key_expanded)-1])
 	for i in range(1, len(key_expanded)-1):
 		Round = InvSubBytes(Round)
@@ -189,8 +193,13 @@ def aes128_InvRoundBlock(state, key):
 	Round = XorStates(Round, key_expanded[0])
 	return Round
 
-def aes128_RoundBlock(state, key):
-	key_expanded = KeyExpansion(key) # 44 keys de 4 bytes
+def aes128_RoundBlock(state, key_hex):
+	"""
+	AES128 Block Cipher Encryption
+	key must be Hexadecimal
+	state must be a 4x4 byte matrix
+	"""
+	key_expanded = KeyExpansion(key_hex) # 44 keys of 4 bytes
 	Round = XorStates(state, key_expanded[0])
 	for i in range(1, len(key_expanded)-1):
 		Round = SubBytes(Round)
@@ -209,11 +218,12 @@ def pad_PKCS(text, l):
 	return text
 
 def string_to_matrix_states(string):
+	"""Converts text string in an array of 4x4 bytes matrix"""
 	blocks = [unhexlify(string[i:i + 32]) for i in range(0, len(string), 32)] # blocks of 16 bytes
 	blocks[len(blocks)-1] = pad_PKCS(blocks[len(blocks)-1], 16) # ensure fixed size blocks by adding padding (PKCS)
 	states = []
 	for block in blocks:
-		state = [ [], [], [], [] ] # state is a 4x4 bytes matrix
+		state = [ [], [], [], [] ] # each state is a 4x4 bytes matrix
 		for i in range(4):
 			for j in range(4):
 				state[i].append(block[(j*4)+i])
@@ -222,19 +232,19 @@ def string_to_matrix_states(string):
 		return states[0]
 	return states
 
-def aes128_ecb_decrypt(ciphertext_hex, key):
+def aes128_ecb_decrypt(ciphertext_hex, key_hex):
 	states = string_to_matrix_states(ciphertext_hex)
 	decrypted_hex = ""
 	for state in states:
-		d = matrix_to_hex(aes128_InvRoundBlock(state, key))
+		d = matrix_to_hex(aes128_InvRoundBlock(state, key_hex))
 		decrypted_hex += d
 	return decrypted_hex
 
-def aes128_ecb_encrypt(plain_text_hex, key):
+def aes128_ecb_encrypt(plain_text_hex, key_hex):
 	states = string_to_matrix_states(plain_text_hex)
 	encrypted_hex = ""
 	for state in states:
-		d = matrix_to_hex(aes128_RoundBlock(state, key))
+		d = matrix_to_hex(aes128_RoundBlock(state, key_hex))
 		encrypted_hex += d
 	return encrypted_hex
 
@@ -242,6 +252,7 @@ def aes128_ecb_encrypt(plain_text_hex, key):
 if __name__ == '__main__':
 
 	key = "YELLOW SUBMARINE"
+	key_hex = hexlify(key.encode('utf-8')).decode('utf-8')
 
 	f = open('../sources/7.txt', 'r')
 	encrypted_data_base64 = ""
@@ -249,8 +260,8 @@ if __name__ == '__main__':
 		encrypted_data_base64 += line.strip('\n')
 	encrypted_data_hex = hexlify(a2b_base64(encrypted_data_base64))
 
-	decrypted_hex = aes128_ecb_decrypt(encrypted_data_hex, key)
-	encrypted_hex = aes128_ecb_encrypt(decrypted_hex, key)
+	decrypted_hex = aes128_ecb_decrypt(encrypted_data_hex, key_hex)
+	encrypted_hex = aes128_ecb_encrypt(decrypted_hex, key_hex)
 
 	if encrypted_hex == encrypted_data_hex.decode("utf-8"):
 		print("---------- AES128 ECB MODE WORKS CORRECTLY ----------")
