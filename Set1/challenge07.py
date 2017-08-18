@@ -228,8 +228,6 @@ def string_to_matrix_states(string):
 			for j in range(4):
 				state[i].append(block[(j*4)+i])
 		states.append(state)
-	if len(states) == 1:
-		return states[0]
 	return states
 
 def aes128_ecb_decrypt(ciphertext_hex, key_hex):

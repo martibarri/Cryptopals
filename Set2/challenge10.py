@@ -6,7 +6,7 @@ from binascii import hexlify, unhexlify, a2b_base64
 # Implement CBC mode
 
 def aes128_cbc_decrypt(ciphertext_hex, iv_hex, key_hex):
-	iv_matrix = string_to_matrix_states(iv_hex)
+	iv_matrix = string_to_matrix_states(iv_hex)[0] # assuming iv is a 16 bytes string, so a single state is created
 	states = string_to_matrix_states(ciphertext_hex)
 	decrypted_hex = ""
 	for index, state in enumerate(states):
@@ -18,7 +18,7 @@ def aes128_cbc_decrypt(ciphertext_hex, iv_hex, key_hex):
 	return decrypted_hex
 
 def aes128_cbc_encrypt(plaintext_hex, iv_hex, key_hex):
-	iv_matrix = string_to_matrix_states(iv_hex)
+	iv_matrix = string_to_matrix_states(iv_hex)[0] # assuming iv is a 16 bytes string, so a single state is created
 	states = string_to_matrix_states(plaintext_hex)
 	encrypted_hex = ""
 	previous_ciphertext_state = [ [], [], [], [] ]
