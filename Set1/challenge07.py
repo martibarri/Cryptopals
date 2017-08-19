@@ -1,3 +1,7 @@
+from sys import path
+path.insert(0, '../Set2')
+from challenge09 import pad_PKCS
+
 from gf256 import GF256LT
 from binascii import hexlify, unhexlify, a2b_base64
 
@@ -210,12 +214,6 @@ def aes128_RoundBlock(state, key_hex):
 	Round = ShiftRows(Round)
 	Round = XorStates(Round, key_expanded[len(key_expanded)-1])
 	return Round
-
-def pad_PKCS(text, l):
-	pad = l-len(text)
-	if pad > 0:
-		return text + bytes([pad]*pad)
-	return text
 
 def string_to_matrix_states(string):
 	"""Converts text string in an array of 4x4 bytes matrix"""
