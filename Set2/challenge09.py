@@ -2,10 +2,7 @@
 
 def pad_PKCS(text, l):
 	pad = (l - (len(text) % l)) % l
-	if len(text) != 0: 
-		return text + bytes([pad]*pad) 
-	else: 
-		return bytes([l]*l)
+	return text + bytes([pad]*pad) if len(text) != 0 else bytes([l]*l)
 
 
 if __name__ == '__main__':
