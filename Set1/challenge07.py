@@ -218,7 +218,9 @@ def aes128_RoundBlock(state, key_hex):
 def string_to_matrix_states(string):
 	"""Converts text string in an array of 4x4 bytes matrix"""
 	blocks = [unhexlify(string[i:i + 32]) for i in range(0, len(string), 32)] # blocks of 16 bytes
-	blocks[len(blocks)-1] = pad_PKCS(blocks[len(blocks)-1], 16) # ensure fixed size blocks by adding padding (PKCS)
+	# ensure fixed size blocks by adding padding (PKCS)
+	if len(blocks):
+		blocks[len(blocks)-1] = pad_PKCS(blocks[len(blocks)-1], 16)
 	states = []
 	for block in blocks:
 		state = [ [], [], [], [] ] # each state is a 4x4 bytes matrix
