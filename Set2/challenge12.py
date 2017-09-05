@@ -1,10 +1,8 @@
 from sys import path
 path.insert(0, '../Set1')
-from challenge07 import aes128_ecb_decrypt, aes128_ecb_encrypt
+from challenge07 import aes128_ecb_encrypt
 from challenge09 import pad_PKCS
-from challenge10 import aes128_cbc_encrypt
-from challenge11 import append_random_bytes, generate_aes_key
-from random import randint
+from challenge11 import generate_aes_key
 from binascii import hexlify, unhexlify
 from base64 import b64decode
 
