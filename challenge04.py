@@ -5,10 +5,10 @@ from challenge03 import xor_decrypt
 
 if __name__ == '__main__':
 
-    file = open('sources/4.txt', 'r')
+    f = open('sources/4.txt', 'r')
 
     file_results = []
-    for line in file:
+    for line in f:
         result = xor_decrypt(line.strip('\n'))
         file_results.append(result)
     sorted_score = sorted(file_results, key=lambda tup: tup[0])[0]
