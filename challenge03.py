@@ -1,8 +1,9 @@
 import operator
+from utils import hex2dec
 
 
 def xor_cipher(string_hex):
-    string_dec = (''.join([chr(int(''.join(c), 16)) for c in zip(string_hex[0::2], string_hex[1::2])]))
+    string_dec = hex2dec(string_hex)
     xor_array = [""] * 256
     for i in range(0, 256):
         xor_tmp = ""

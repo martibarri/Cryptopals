@@ -1,11 +1,7 @@
-#  Write a function that takes two equal-length buffers and produces their XOR combination.
 from binascii import unhexlify, hexlify
+from utils import xor_strings
 
-
-def xor_strings(s1, s2):
-    return "".join(chr(ord(x) ^ ord(y)) for x, y in zip(s1, s2))
-
-
+#  Write a function that takes two equal-length buffers and produces their XOR combination.
 if __name__ == '__main__':
     string1_hex = "1c0111001f010100061a024b53535009181c"
     print("string1_hex:", string1_hex)

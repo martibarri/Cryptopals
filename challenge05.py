@@ -1,12 +1,12 @@
-from binascii import hexlify
+from utils import xor_strings, dec2hex
 
 
 def encrypt_repeating_key_xor(key, input_string):
     encrypted = ""
     for i in range(int(len(input_string) / len(key) + 1)):
         substring = input_string[i * len(key):(i + 1) * len(key)]
-        encrypted += "".join(chr(ord(x) ^ ord(y)) for x, y in zip(substring, key))
-    return hexlify(encrypted.encode('utf-8')).decode('utf-8')
+        encrypted += xor_strings(substring, key)
+    return dec2hex(encrypted)
 
 
 if __name__ == '__main__':
