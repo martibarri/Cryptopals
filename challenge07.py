@@ -1,6 +1,5 @@
 from gf256 import GF256LT
-from binascii import hexlify, unhexlify, a2b_base64
-
+from binascii import unhexlify
 from utils import dec2hex, base642hex, pad_pkcs
 
 # https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
