@@ -26,12 +26,10 @@ def discover_block_size(encryption_oracle):
     test_data = b''
     initial_size = len(encryption_oracle.encrypt(test_data))
     test_size = initial_size
-
     while test_size == initial_size:
         test_data += b'A'
         encrypted_test_data = encryption_oracle.encrypt(test_data)
         test_size = len(encrypted_test_data)
-
     return test_size - initial_size
 
 
@@ -47,7 +45,7 @@ def detect_ecb_mode(encryption_oracle):
     encrypted_data = encryption_oracle.encrypt(test_data)
     encrypted_data_hex = hexlify(encrypted_data).decode('utf-8')
 
-    blocks = [unhexlify(encrypted_data_hex[i:i + 32]) for i in range(0, len(encrypted_data_hex), 32)]
+    blocks = [unhexlify(encrypted_data_hex[i:i + 16]) for i in range(0, len(encrypted_data_hex), 16)]
     number_of_repeated_blocks = len(blocks) - len(set(blocks))
 
     return True if number_of_repeated_blocks else False
@@ -76,7 +74,6 @@ if __name__ == '__main__':
         print("The cipher is NOT using ECB mode")
     else:
         print("The cipher is using ECB mode")
-
         decrypted_data = b''
         data_length = len(encryption_oracle.encrypt(b''))
         for i in range(data_length):
@@ -84,5 +81,5 @@ if __name__ == '__main__':
             decrypted_data += next_byte
             # print(decrypted_data)
             print("Decrypting: " + "{:4.2f}".format(100 * (i + 1) / data_length) + "%", end='\r')
-            print("Decryption complete!")
-            print(decrypted_data.decode('utf-8'))
+        print("Decryption complete!")
+        print(decrypted_data.decode('utf-8'))
