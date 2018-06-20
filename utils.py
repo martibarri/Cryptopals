@@ -30,7 +30,10 @@ def pad_pkcs(text, l):
 def unpad_pkcs(text, l):
     if len(text) % l == 0:
         pad = text[-1]
-        return text[0:len(text) - pad]
+        if pad > 16:
+            return text
+        else:
+            return text[0:len(text) - pad]
     else:
         return text
 
