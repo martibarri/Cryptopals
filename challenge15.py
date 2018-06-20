@@ -8,7 +8,7 @@ def validate_pad_PKCS(text, l):
                 for j in range(padding_length):
                     if text[i + j] != padding_length:
                         raise Exception("wrong padding!")
-                return text[0:len(text) - pad]  #
+                return text[0:len(text) - pad]  # unpadding
         return text  # no padding
     else:  # no padding
         return text
@@ -16,7 +16,9 @@ def validate_pad_PKCS(text, l):
 
 if __name__ == '__main__':
     x1 = b"ICE ICE BABY\x04\x04\x04\x04"
+    print(x1)
     print(validate_pad_PKCS(x1, 16))
-    x2 = b"ICE ICE BABY\x01\x02\x03\x04"
-    # x2 = b"ICE ICE BABY\x05\x05\x05\x05"
+    # x2 = b"ICE ICE BABY\x01\x02\x03\x04"
+    x2 = b"ICE ICE BABY\x05\x05\x05\x05"
+    print(x2)
     print(validate_pad_PKCS(x2, 16))
