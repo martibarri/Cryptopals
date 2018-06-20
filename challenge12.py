@@ -1,6 +1,5 @@
 from challenge07 import aes128_ecb_encrypt
-from challenge11 import generate_aes_key
-from utils import pad_pkcs
+from utils import pad_pkcs, generate_aes_key
 from binascii import hexlify, unhexlify
 from base64 import b64decode
 

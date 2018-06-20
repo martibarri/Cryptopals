@@ -3,11 +3,7 @@ from challenge10 import aes128_cbc_encrypt
 from binascii import hexlify, unhexlify
 from os import urandom
 from random import randint
-from utils import dec2hex, hex2dec
-
-
-def generate_aes_key():
-    return urandom(16)
+from utils import dec2hex, hex2dec, generate_aes_key
 
 
 def append_random_bytes(plain_text):
