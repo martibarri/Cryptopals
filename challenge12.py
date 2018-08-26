@@ -1,6 +1,5 @@
 from challenge07 import aes128_ecb_encrypt
 from utils import pad_pkcs, generate_aes_key
-from binascii import hexlify, unhexlify
 from base64 import b64decode
 
 
@@ -10,11 +9,9 @@ class EncryptionOracleECB:
         self.data = plain_text_data
 
     def encrypt(self, plain_text):
-        key_hex = hexlify(self.key).decode('utf-8')
         plain_text_pad = pad_pkcs(plain_text + b64decode(self.data), 16)
-        plain_text_hex = hexlify(plain_text_pad).decode('utf-8')
-        cipher_text_hex = aes128_ecb_encrypt(plain_text_hex, key_hex)
-        return unhexlify(cipher_text_hex.encode('utf-8'))
+        cipher_text = aes128_ecb_encrypt(plain_text_pad, self.key)
+        return cipher_text
 
 
 def discover_block_size(encryption_oracle):
@@ -42,9 +39,8 @@ def detect_ecb_mode(encryption_oracle):
     '''
     test_data = bytes([0]) * 200
     encrypted_data = encryption_oracle.encrypt(test_data)
-    encrypted_data_hex = hexlify(encrypted_data).decode('utf-8')
 
-    blocks = [unhexlify(encrypted_data_hex[i:i + 16]) for i in range(0, len(encrypted_data_hex), 16)]
+    blocks = [encrypted_data[i:i + 16] for i in range(0, len(encrypted_data), 16)]
     number_of_repeated_blocks = len(blocks) - len(set(blocks))
 
     return True if number_of_repeated_blocks else False

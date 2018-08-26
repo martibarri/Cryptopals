@@ -1,6 +1,6 @@
 from gf256 import GF256LT
-from binascii import unhexlify
-from utils import dec2hex, base642hex, pad_pkcs
+from binascii import a2b_base64
+from utils import pad_pkcs
 
 # https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
 # openssl enc -aes-128-ecb -K 59454c4c4f57205355424d4152494e45 -base64 -d -in 7.txt -out 7_d.txt
@@ -43,13 +43,13 @@ invSBox = (0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9
            0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d)
 
 
-def matrix_to_hex(state):
-    """Returns hex string from 4x4 byte matrix"""
-    state_hex = ""
+def matrix_to_bytes(state):
+    """Returns byte string from 4x4 byte matrix"""
+    state_byte = b''
     for i in range(4):
         for j in range(4):
-            state_hex += format(state[j][i], '02x')
-    return state_hex
+            state_byte += bytes([state[j][i]])
+    return state_byte
 
 
 def RCON(i):
@@ -72,8 +72,8 @@ def SubWord(w):
     return subwords
 
 
-def InvKeyExpansion(key_hex):
-    key_byte = bytearray.fromhex(key_hex)
+def InvKeyExpansion(key):
+    key_byte = bytearray(key)
     w = []
     for i in range(0, 4):
         w.append(key_byte[i * 4:(i + 1) * 4])
@@ -95,8 +95,8 @@ def InvKeyExpansion(key_hex):
     return keys  # 11 keys 4x4 bytes matrix
 
 
-def KeyExpansion(key_hex):
-    key_byte = bytearray.fromhex(key_hex)
+def KeyExpansion(key):
+    key_byte = bytearray(key)
     w = []
     for i in range(0, 4):
         w.append(key_byte[i * 4:(i + 1) * 4])
@@ -186,13 +186,12 @@ def XorStates(state1, state2):
     return result
 
 
-def aes128_InvRoundBlock(state, key_hex):
+def aes128_InvRoundBlock(state, key):
     """
     AES128 Block Cipher Decryption
-    key must be Hexadecimal
     state must be a 4x4 byte matrix
     """
-    key_expanded = InvKeyExpansion(key_hex)  # 44 keys of 4 bytes
+    key_expanded = InvKeyExpansion(key)  # 44 keys of 4 bytes
     Round = XorStates(state, key_expanded[len(key_expanded) - 1])
     for i in range(1, len(key_expanded) - 1):
         Round = InvSubBytes(Round)
@@ -205,13 +204,12 @@ def aes128_InvRoundBlock(state, key_hex):
     return Round
 
 
-def aes128_RoundBlock(state, key_hex):
+def aes128_RoundBlock(state, key):
     """
     AES128 Block Cipher Encryption
-    key must be Hexadecimal
     state must be a 4x4 byte matrix
     """
-    key_expanded = KeyExpansion(key_hex)  # 44 keys of 4 bytes
+    key_expanded = KeyExpansion(key)  # 44 keys of 4 bytes
     Round = XorStates(state, key_expanded[0])
     for i in range(1, len(key_expanded) - 1):
         Round = SubBytes(Round)
@@ -226,7 +224,7 @@ def aes128_RoundBlock(state, key_hex):
 
 def string_to_matrix_states(string):
     """Converts text string in an array of 4x4 bytes matrix"""
-    blocks = [unhexlify(string[i:i + 32]) for i in range(0, len(string), 32)]  # blocks of 16 bytes
+    blocks = [string[i:i + 16] for i in range(0, len(string), 16)]  # blocks of 16 bytes
     # ensure fixed size blocks by adding padding (PKCS)
     if len(blocks):
         blocks[len(blocks) - 1] = pad_pkcs(blocks[len(blocks) - 1], 16)
@@ -240,41 +238,40 @@ def string_to_matrix_states(string):
     return states
 
 
-def aes128_ecb_decrypt(ciphertext_hex, key_hex):
-    states = string_to_matrix_states(ciphertext_hex)
-    decrypted_hex = ""
+def aes128_ecb_decrypt(cipher_text, key):
+    states = string_to_matrix_states(cipher_text)
+    plain_text = b''
     for state in states:
-        d = matrix_to_hex(aes128_InvRoundBlock(state, key_hex))
-        decrypted_hex += d
-    return decrypted_hex
+        d = matrix_to_bytes(aes128_InvRoundBlock(state, key))
+        plain_text += d
+    return plain_text
 
 
-def aes128_ecb_encrypt(plain_text_hex, key_hex):
-    states = string_to_matrix_states(plain_text_hex)
-    encrypted_hex = ""
+def aes128_ecb_encrypt(plain_text, key):
+    states = string_to_matrix_states(plain_text)
+    cipher_text = b''
     for state in states:
-        d = matrix_to_hex(aes128_RoundBlock(state, key_hex))
-        encrypted_hex += d
-    return encrypted_hex
+        d = matrix_to_bytes(aes128_RoundBlock(state, key))
+        cipher_text += d
+    return cipher_text
 
 
 if __name__ == '__main__':
 
-    key = "YELLOW SUBMARINE"
-    key_hex = dec2hex(key)
+    key = b'YELLOW SUBMARINE'
 
     f = open('sources/7.txt', 'r')
     encrypted_data_base64 = ""
     for line in f:
         encrypted_data_base64 += line.strip('\n')
-    encrypted_data_hex = base642hex(encrypted_data_base64)
+    encrypted_data = a2b_base64(encrypted_data_base64)
 
-    decrypted_hex = aes128_ecb_decrypt(encrypted_data_hex, key_hex)
-    encrypted_hex = aes128_ecb_encrypt(decrypted_hex, key_hex)
+    plain_text = aes128_ecb_decrypt(encrypted_data, key)
+    cipher_text = aes128_ecb_encrypt(plain_text, key)
 
-    if encrypted_hex == encrypted_data_hex.decode("utf-8"):
+    if cipher_text == encrypted_data:
         print("---------- AES128 ECB MODE WORKS CORRECTLY ----------")
     else:
         print("---------- ERROR! ----------")
 
-    print(unhexlify(decrypted_hex.encode('utf-8')).decode('utf-8'))
+    print(plain_text.decode())
