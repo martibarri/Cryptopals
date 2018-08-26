@@ -1,12 +1,18 @@
 from challenge10 import aes128_cbc_encrypt, aes128_cbc_decrypt
-from utils import pad_pkcs, unpad_pkcs, generate_aes_key
+from utils import pad_pkcs, unpad_pkcs, generate_aes_key, random_bytes
 
 
 def parsing_routine(cookie_data):
     cookie_array = cookie_data.split(';')
     cookie_dict = {}
     for item in cookie_array:
-        cookie_dict[item.split('=')[0]] = item.split('=')[1]
+        #  with random values it may result in appearing the character ';'
+        #  which will result an IndexError Exception because the next expression
+        #  won't find an equal ('=') to split the item. We will ignore this case
+        try:
+            cookie_dict[item.split('=')[0]] = item.split('=')[1]
+        except IndexError:
+            pass
     print(cookie_dict)
     return cookie_dict
 
@@ -14,7 +20,7 @@ def parsing_routine(cookie_data):
 class CBCBitflippingAttack:
     def __init__(self):
         self.key = generate_aes_key()
-        self.iv = bytes([0]) * 16
+        self.iv = random_bytes(16)
 
     def prepare(self, input_string):
         comment1 = b'comment1=cooking%20MCs;userdata='
