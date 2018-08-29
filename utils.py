@@ -38,20 +38,15 @@ def unpad_pkcs(text, l):
         return text
 
 
-def validate_pad_PKCS(text, l):
-    pad = text[-1]
-    if len(text) % l == 0:  # padding
-        # validate PKCS#7 padding
-        for i in range(len(text)):
-            if text[i] < l:  # detect some sort of padding
-                padding_length = len(text[i:])
-                for j in range(padding_length):
-                    if text[i + j] != padding_length:
-                        raise ValueError("wrong padding!")
-                return text[0:len(text) - pad]  # unpadding
-        return text  # no padding
-    else:  # no padding
-        return text
+def validate_pad_pkcs(text):
+    # Supposed padding
+    padding = text[-text[-1]:]
+    # bytes in the range are equal to the padding value itself
+    result = all(padding[b] == len(padding) for b in range(0, len(padding)))
+    if not result:
+        raise ValueError("wrong padding!")
+    else:
+        return result
 
 
 def generate_aes_key():
