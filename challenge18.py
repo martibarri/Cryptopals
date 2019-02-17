@@ -4,11 +4,29 @@ from utils import validate_pad_pkcs, unpad_pkcs
 
 
 def aes128_ctr_cipher(string, nonce, key):
+    """
+                                  ------------------
+                                  | nonce + counter|
+                                  ------------------
+                                          |
+                                     -----------
+                                     | encrypt |
+                                     -----------
+    ------------------------              |
+    | plain or cipher text | ---------> |XOR|
+    ------------------------              |
+                              ------------------------
+                              | plain or cipher text |
+                              ------------------------
+    """
     cipher_string = b''
+    # Divide input string in blocks of 16 bytes
     cipher_text_blocks = [string[i:i + 16] for i in range(0, len(string), 16)]
     for i in range(len(cipher_text_blocks)):
+        # Calculate incremental nonce block for each input string block
         nonce_block = nonce + i.to_bytes(8, byteorder='little')
         nonce_matrix = string_to_matrix_states(nonce_block)[0]
+        # Cipher nonce block with key
         nonce_matrix_cipher = aes128_RoundBlock(nonce_matrix, key)
         d = XorStates(nonce_matrix_cipher, string_to_matrix_states(cipher_text_blocks[i])[0])
         cipher_string += matrix_to_bytes(d)

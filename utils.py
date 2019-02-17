@@ -14,6 +14,13 @@ def xor_strings(s1, s2):
     return "".join(chr(ord(x) ^ ord(y)) for x, y in zip(s1, s2))
 
 
+def xor_bytes(b1, b2):
+    xor = b''
+    for x, y in zip(b1, b2):
+        xor += bytes([x ^ y])
+    return xor
+
+
 def hex2dec(string_hex):
     return ''.join([chr(int(''.join(c), 16)) for c in zip(string_hex[0::2], string_hex[1::2])])
 
