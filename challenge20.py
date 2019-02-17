@@ -160,12 +160,9 @@ if __name__ == '__main__':
               "refined:", ctr_truncated[i]['refined'])
     print("\n", count_not_refined(ctr_truncated), "texts to be refined")
 
-    # At this point, the beginning of sentences can be read, but the end is definitely not readable.
-    # We can conclude that the first block is correctly, and the followings are deviated due the padding chars.
-    # Let's try to refine our results, starting by block number two:
+    # The beginning of sentences can be read, but some padding is detected.
     ctr_truncated = refine_block(ctr_truncated, int(smallest / 16) - 1)  # last block
 
-    # decrypt using the new keystream
     print("\nSecond attempt: Refined")
     for i in range(len(ctr_truncated)):
         if not ctr_truncated[i]['refined']:
