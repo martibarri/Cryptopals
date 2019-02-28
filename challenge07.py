@@ -226,6 +226,7 @@ def string_to_matrix_states(string):
     """Converts text string in an array of 4x4 bytes matrix"""
     blocks = [string[i:i + 16] for i in range(0, len(string), 16)]  # blocks of 16 bytes
     # ensure fixed size blocks by adding padding (PKCS)
+    # blocks must be <class 'bytes'>
     if len(blocks):
         blocks[len(blocks) - 1] = pad_pkcs(blocks[len(blocks) - 1], 16)
     states = []
