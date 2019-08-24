@@ -33,4 +33,5 @@ if __name__ == '__main__':
         if output2 == output:
             print("The timestamp used as a seed is", possible_seed, "with an output of", output2)
             break
-    print("No value found.")
+    if output2 != output:
+        print("No value found.")
