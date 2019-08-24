@@ -54,8 +54,8 @@ def mt19937_cipher(input_string, seed):
 def brute_force_mt19937_cipher(cipher, kwnon):
     print("Brute force all possible 16-bit keys...")
     for possible_key in range(2 ** 16):  # all 16-bit numbers
-        result = mt19937_cipher(cipher_text, possible_key)
-        if known_text in result:
+        result = mt19937_cipher(cipher, possible_key)
+        if kwnon in result:
             return possible_key
     return 0  # If no key found, return 0
 
