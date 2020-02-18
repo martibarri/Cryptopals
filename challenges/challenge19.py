@@ -102,8 +102,7 @@ def refine_block(ctr, block):
                 position_pad = plain_text_block.find(posible_pad[-1])
                 if len(plain_text_block[position_pad:]) == posible_pad[0][0]:  # possible pad match length
                     plain_text_block = plain_text_block[:position_pad]  # delete pad
-                    ctr[c]['plain'] = ctr[c]['plain'][:block * 16] + plain_text_block + ctr[c]['plain'][
-                                                                                        (block + 1) * 16:]
+                    ctr[c]['plain'] = ctr[c]['plain'][:block * 16] + plain_text_block + ctr[c]['plain'][(block + 1) * 16:]
                     ctr[c]['refined'] = True
                     # print(ctr[c]['plain'])  # strings fully decrypted
     return ctr

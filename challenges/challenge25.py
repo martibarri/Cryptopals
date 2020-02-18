@@ -57,12 +57,12 @@ class CTR_system:
 
     def cipher(self, text):
         return aes128_ctr_cipher(text, self.nonce, self.key)
-    
+
     def edit_ctr(self, ciphertext, offset, newtext):
         # decrypt
         plaintext = aes128_ctr_cipher(ciphertext, self.nonce, self.key)
         # edit with different plaintext (newtext)
-        new_plaintext = plaintext[:offset] + newtext + plaintext[offset+len(newtext):]
+        new_plaintext = plaintext[:offset] + newtext + plaintext[offset + len(newtext):]
         # encrypt again
         new_ciphertext = aes128_ctr_cipher(new_plaintext, self.nonce, self.key)
         return new_ciphertext
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     pre += '[*] Encrypt the recovered plaintext under CTR with a random key...\n'
     cipher_text = ctr_system.cipher(recovered_plain_text)
 
-    # Cipher text has been trimmed to improve speed of cracking 
+    # Cipher text has been trimmed to improve speed of cracking
     # Comment these lines to retrieve full text (slower):
     cipher_text = cipher_text[:200]
     recovered_plain_text = recovered_plain_text[:200]

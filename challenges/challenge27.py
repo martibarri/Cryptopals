@@ -34,7 +34,7 @@ class CBCBitflippingAttack:
         plain_text = aes128_cbc_decrypt(cipher_text, self.iv, self.key)
         plain_text = unpad_pkcs(plain_text, 16)
         # rise an exception if decoded_plain_text is a noncompliant message
-        try: 
+        try:
             decoded_plain_text = plain_text.decode('utf-8')
         except Exception as e:
             print(e)
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     #  Recover the key from CBC with IV=Key
 
     bitflipping_attack = CBCBitflippingAttack()
-    
+
     my_data = b'data'
     cipher_text = bitflipping_attack.prepare(my_data)  # len(cipher_text) = 80 -> 5 blocks
     # modify the ciphertext

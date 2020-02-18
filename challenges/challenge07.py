@@ -1,7 +1,7 @@
 from gf256 import GF256LT
 from binascii import a2b_base64
 from huepy import good, bad
-from utils import pad_pkcs, matrix_to_bytes, xor_states, string_to_matrix_states, read_data
+from utils import matrix_to_bytes, xor_states, string_to_matrix_states, read_data
 
 # https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
 # openssl enc -aes-128-ecb -K 59454c4c4f57205355424d4152494e45 -base64 -d -in 7.txt -out 7_d.txt

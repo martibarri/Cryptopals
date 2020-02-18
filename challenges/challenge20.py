@@ -4,7 +4,7 @@ from collections import defaultdict
 from operator import itemgetter
 
 from challenge18 import aes128_ctr_cipher
-from utils import pad_pkcs, generate_aes_key, xor_bytes
+from utils import generate_aes_key, xor_bytes
 
 
 def encrypt_data():
@@ -102,8 +102,7 @@ def refine_block(ctr, block):
                 position_pad = plain_text_block.find(posible_pad[-1])
                 if len(plain_text_block[position_pad:]) == posible_pad[0][0]:  # possible pad match length
                     plain_text_block = plain_text_block[:position_pad]  # delete pad
-                    ctr[c]['plain'] = ctr[c]['plain'][:block * 16] + plain_text_block + ctr[c]['plain'][
-                                                                                        (block + 1) * 16:]
+                    ctr[c]['plain'] = ctr[c]['plain'][:block * 16] + plain_text_block + ctr[c]['plain'][(block + 1) * 16:]
                     ctr[c]['refined'] = True
                     # print(ctr[c]['plain'])  # strings fully decrypted
     return ctr
@@ -169,4 +168,3 @@ if __name__ == '__main__':
             ctr_truncated[i]['plain'] = xor_bytes(ctr_truncated[i]['cipher'], key_stream)
             ctr_truncated[i]['refined'] = True
         print(i, ctr_truncated[i]['plain'])
-

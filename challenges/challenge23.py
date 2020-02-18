@@ -52,7 +52,7 @@ def undo_right_shift_xor(result, l):
 def undo_left_shift_and_xor(result, shift, and_value):
     """
     Counting from the most significant bit in the left. This function is the
-    inverse of: result = original ^ ((original << shift) & and_value) 
+    inverse of: result = original ^ ((original << shift) & and_value)
     to obtain the original value.
     """
     original = 0
