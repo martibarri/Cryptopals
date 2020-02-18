@@ -1,6 +1,7 @@
-from challenge07 import aes128_ecb_encrypt
-from utils import pad_pkcs, generate_aes_key
 from base64 import b64decode
+
+from challenge07 import aes128_ecb_encrypt
+from utils import pad_pkcs, generate_aes_key, divide_in_blocks, read_data
 
 
 class EncryptionOracleECB:
@@ -60,7 +61,8 @@ def find_byte(encryption_oracle, block_size, known_bytes):
 
 if __name__ == '__main__':
 
-    data = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK"
+    data = read_data('12')
+
     encryption_oracle = EncryptionOracleECB(data)
 
     block_size = discover_block_size(encryption_oracle)

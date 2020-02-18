@@ -1,8 +1,9 @@
 from binascii import a2b_base64
 from termcolor import cprint
+
 from challenge18 import aes128_ctr_cipher
 from challenge07 import aes128_ecb_decrypt
-from utils import generate_aes_key
+from utils import generate_aes_key, random_bytes, read_data
 
 
 pre = ''
@@ -22,8 +23,8 @@ def beautify_print_try(value):
     global output
     print("\033c")
     cprint(pre, 'blue', attrs=['bold'])
-    cprint(output, 'green')
-    cprint('[*] Try: ' + value, 'red',)
+    cprint(output, 'cyan')
+    cprint('\n[~] Try: ' + value, 'yellow',)
 
 
 def calculate_next_byte(ciphertext, offset):
@@ -52,7 +53,7 @@ def calculate_next_byte(ciphertext, offset):
 class CTR_system:
     def __init__(self):
         self.key = generate_aes_key()
-        self.nonce = bytes([0]) * 8  # nonce forced to 0
+        self.nonce = random_bytes(8)
 
     def cipher(self, text):
         return aes128_ctr_cipher(text, self.nonce, self.key)
@@ -70,10 +71,7 @@ class CTR_system:
 if __name__ == '__main__':
 
     pre += '[*] Using aes128_ecb_decrypt from challenge07 to decrypt provided data...\n'
-    f = open('sources/25.txt', 'r')
-    encrypted_data_base64 = ""
-    for line in f:
-        encrypted_data_base64 += line.strip('\n')
+    encrypted_data_base64 = read_data('25')
     encrypted_data = a2b_base64(encrypted_data_base64)
 
     ecb_key = b'YELLOW SUBMARINE'
@@ -89,7 +87,7 @@ if __name__ == '__main__':
     cipher_text = cipher_text[:200]
     recovered_plain_text = recovered_plain_text[:200]
 
-    pre += '[*] Recover the original plaintext using the `edit_ctr()` function to crack ciphertext:'
+    pre += '[*] Recover the original plaintext using the `edit_ctr()` function to crack ciphertext:\n'
     plain_text = b''
     for i in range(len(cipher_text)):
         new_byte = calculate_next_byte(cipher_text, i)

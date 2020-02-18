@@ -1,6 +1,6 @@
 from challenge10 import aes128_cbc_encrypt, aes128_cbc_decrypt
 from binascii import a2b_base64
-from utils import pad_pkcs, unpad_pkcs, validate_pad_pkcs, generate_aes_key, random_bytes
+from utils import pad_pkcs, unpad_pkcs, validate_pad_pkcs, generate_aes_key, random_bytes, read_data
 from random import randint
 
 
@@ -103,10 +103,7 @@ def decipher(ciphertext, oracle, iv):
 
 if __name__ == '__main__':
 
-    f = open('sources/17.txt', 'r')
-    random_strings = []
-    for line in f:
-        random_strings.append(line.strip('\n'))
+    random_strings = read_data('17', out_multiline=True)
     random_str = a2b_base64(random_strings[randint(0, 9)])
 
     cbc_padding_oracle = CBCPaddingOracle()

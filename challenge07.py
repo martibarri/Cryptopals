@@ -1,6 +1,7 @@
 from gf256 import GF256LT
 from binascii import a2b_base64
-from utils import pad_pkcs
+from huepy import good, bad
+from utils import pad_pkcs, matrix_to_bytes, xor_states, string_to_matrix_states, read_data
 
 # https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
 # openssl enc -aes-128-ecb -K 59454c4c4f57205355424d4152494e45 -base64 -d -in 7.txt -out 7_d.txt
@@ -41,15 +42,6 @@ invSBox = (0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9
            0x60, 0x51, 0x7f, 0xa9, 0x19, 0xb5, 0x4a, 0x0d, 0x2d, 0xe5, 0x7a, 0x9f, 0x93, 0xc9, 0x9c, 0xef,
            0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61,
            0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d)
-
-
-def matrix_to_bytes(state):
-    """Returns byte string from 4x4 byte matrix"""
-    state_byte = b''
-    for i in range(4):
-        for j in range(4):
-            state_byte += bytes([state[j][i]])
-    return state_byte
 
 
 def RCON(i):
@@ -178,29 +170,21 @@ def InvMixColumns(state):
     return result
 
 
-def XorStates(state1, state2):
-    result = [[], [], [], []]
-    for i in range(4):
-        for j in range(4):
-            result[i].append(state1[i][j] ^ state2[i][j])
-    return result
-
-
 def aes128_InvRoundBlock(state, key):
     """
     AES128 Block Cipher Decryption
     state must be a 4x4 byte matrix
     """
     key_expanded = InvKeyExpansion(key)  # 44 keys of 4 bytes
-    Round = XorStates(state, key_expanded[len(key_expanded) - 1])
+    Round = xor_states(state, key_expanded[len(key_expanded) - 1])
     for i in range(1, len(key_expanded) - 1):
         Round = InvSubBytes(Round)
         Round = InvShiftRows(Round)
         Round = InvMixColumns(Round)
-        Round = XorStates(Round, key_expanded[len(key_expanded) - 1 - i])
+        Round = xor_states(Round, key_expanded[len(key_expanded) - 1 - i])
     Round = InvSubBytes(Round)
     Round = InvShiftRows(Round)
-    Round = XorStates(Round, key_expanded[0])
+    Round = xor_states(Round, key_expanded[0])
     return Round
 
 
@@ -210,33 +194,16 @@ def aes128_RoundBlock(state, key):
     state must be a 4x4 byte matrix
     """
     key_expanded = KeyExpansion(key)  # 44 keys of 4 bytes
-    Round = XorStates(state, key_expanded[0])
+    Round = xor_states(state, key_expanded[0])
     for i in range(1, len(key_expanded) - 1):
         Round = SubBytes(Round)
         Round = ShiftRows(Round)
         Round = MixColumns(Round)
-        Round = XorStates(Round, key_expanded[i])
+        Round = xor_states(Round, key_expanded[i])
     Round = SubBytes(Round)
     Round = ShiftRows(Round)
-    Round = XorStates(Round, key_expanded[len(key_expanded) - 1])
+    Round = xor_states(Round, key_expanded[len(key_expanded) - 1])
     return Round
-
-
-def string_to_matrix_states(string):
-    """Converts text string in an array of 4x4 bytes matrix"""
-    blocks = [string[i:i + 16] for i in range(0, len(string), 16)]  # blocks of 16 bytes
-    # ensure fixed size blocks by adding padding (PKCS)
-    # blocks must be <class 'bytes'>
-    if len(blocks):
-        blocks[len(blocks) - 1] = pad_pkcs(blocks[len(blocks) - 1], 16)
-    states = []
-    for block in blocks:
-        state = [[], [], [], []]  # each state is a 4x4 bytes matrix
-        for i in range(4):
-            for j in range(4):
-                state[i].append(block[(j * 4) + i])
-        states.append(state)
-    return states
 
 
 def aes128_ecb_decrypt(cipher_text, key):
@@ -261,18 +228,15 @@ if __name__ == '__main__':
 
     key = b'YELLOW SUBMARINE'
 
-    f = open('sources/7.txt', 'r')
-    encrypted_data_base64 = ""
-    for line in f:
-        encrypted_data_base64 += line.strip('\n')
+    encrypted_data_base64 = read_data('7')
     encrypted_data = a2b_base64(encrypted_data_base64)
 
     plain_text = aes128_ecb_decrypt(encrypted_data, key)
     cipher_text = aes128_ecb_encrypt(plain_text, key)
 
     if cipher_text == encrypted_data:
-        print("---------- AES128 ECB MODE WORKS CORRECTLY ----------")
+        print(good('AES128 ECB MODE WORKS CORRECTLY'))
     else:
-        print("---------- ERROR! ----------")
+        print(bad('ERROR!'))
 
     print(plain_text.decode())

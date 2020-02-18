@@ -1,8 +1,8 @@
 import random
 from os import urandom
 
-from challenge07 import XorStates, matrix_to_bytes, string_to_matrix_states
 from challenge21 import MT19937
+from utils import xor_states, matrix_to_bytes, string_to_matrix_states
 
 
 def generate_8_bits(rng):
@@ -46,7 +46,7 @@ def mt19937_cipher(input_string, seed):
         rng_block = generate_keytream_block(rng)
         rng_matrix = string_to_matrix_states(rng_block)[0]
         # Xor matrix
-        d = XorStates(rng_matrix, string_to_matrix_states(input_text_blocks[i])[0])
+        d = xor_states(rng_matrix, string_to_matrix_states(input_text_blocks[i])[0])
         output_string += matrix_to_bytes(d)
     return output_string
 

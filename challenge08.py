@@ -1,26 +1,30 @@
-# Detect AES in ECB mode
+from huepy import good, info
+
+from utils import divide_in_blocks, read_data
+
 
 if __name__ == '__main__':
 
-    f = open('sources/8.txt', 'r')
-    encrypted_data_hex = []
-    for line in f:
-        encrypted_data_hex.append(line.strip('\n'))
+    """Detect AES in ECB mode"""
 
+    encrypted_data_hex = read_data('8', out_multiline=True)
     scores = []
 
-    for i in range(len(encrypted_data_hex)):
-        blocks = [encrypted_data_hex[i][j:j + 16] for j in range(0, len(encrypted_data_hex[i]), 16)]
-        score = len(blocks) - len(set(blocks))
+    for encrypted_line_hex in encrypted_data_hex:
+        encrypted_line_blocks = divide_in_blocks(encrypted_line_hex, 16)
+        score = len(encrypted_line_blocks) - len(set(encrypted_line_blocks))
         scores.append(score)
 
     max_score = max(scores)
     positions = [i for i, j in enumerate(scores) if j == max_score]
     # note that in fact only one score != 0
-    for i in range(len(positions)):
-        print("Ciphertext encrypted with AES-ECB:")
-        print([encrypted_data_hex[positions[i]][j:j + 16] for j in range(0, len(encrypted_data_hex[positions[i]]), 16)])
-        print("Location:", positions[i])
-        print("Number of repeated blocks:", scores[positions[i]])
 
-        #  the same 16 byte plaintext block will always produce the same 16 byte ciphertext
+    for i in range(len(positions)):
+        ecb = divide_in_blocks(encrypted_data_hex[positions[i]], 16)
+        print(info("Ciphertext encrypted with AES-ECB:"))
+        for block_slice in ecb:
+            print(block_slice)
+        print(good(f"Line location: {positions[i]}"))
+        print(good(f"Number of repeated blocks: {scores[positions[i]]}"))
+
+    # the same 16 byte plaintext block will always produce the same 16 byte ciphertext

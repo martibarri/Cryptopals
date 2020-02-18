@@ -1,7 +1,8 @@
 from operator import itemgetter
 from base64 import b64decode
-from utils import dec2hex
+
 from challenge03 import xor_decrypt
+from utils import dec2hex, read_data
 
 
 def hamming_distance(s1, s2):
@@ -16,10 +17,7 @@ def hamming_distance(s1, s2):
 
 if __name__ == '__main__':
 
-    f = open('sources/6.txt', 'r')
-    encrypted_data_base64 = ""
-    for line in f:
-        encrypted_data_base64 += line.strip('\n')
+    encrypted_data_base64 = read_data('6')
     encrypted_data_ascii = b64decode(encrypted_data_base64).decode('utf-8')
 
     KEYSIZE_candidates = []

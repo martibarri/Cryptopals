@@ -1,6 +1,8 @@
-from challenge07 import aes128_RoundBlock, XorStates, matrix_to_bytes, string_to_matrix_states
 from binascii import a2b_base64
-from utils import validate_pad_pkcs, unpad_pkcs
+
+from challenge07 import aes128_RoundBlock
+from utils import validate_pad_pkcs, unpad_pkcs, \
+    xor_states, matrix_to_bytes, string_to_matrix_states
 
 
 def aes128_ctr_cipher(string, nonce, key):
@@ -28,7 +30,7 @@ def aes128_ctr_cipher(string, nonce, key):
         nonce_matrix = string_to_matrix_states(nonce_block)[0]
         # Cipher nonce block with key
         nonce_matrix_cipher = aes128_RoundBlock(nonce_matrix, key)
-        d = XorStates(nonce_matrix_cipher, string_to_matrix_states(cipher_text_blocks[i])[0])
+        d = xor_states(nonce_matrix_cipher, string_to_matrix_states(cipher_text_blocks[i])[0])
         cipher_string += matrix_to_bytes(d)
     return cipher_string
 

@@ -1,5 +1,7 @@
 import operator
-from utils import hex2dec
+
+from utils import hex2dec, read_data
+from huepy import info, good, bold
 
 
 def xor_cipher(string_hex):
@@ -37,12 +39,14 @@ def xor_cipher_score(xor_array):
 
 
 def xor_result(xor_score_dict, cipher_array, string_hex):
-    sorted_score = sorted(xor_score_dict.items(), key=operator.itemgetter(1),
-                          reverse=True)  # [(88, 224), (95, 125), ... ] (key, score)
+    # [(88, 224), (95, 125), ... ] (key, score)
+    sorted_score = sorted(xor_score_dict.items(),
+                          key=operator.itemgetter(1), reverse=True)
     result_array = [] * 255
     for j in range(0, 256):
-        result_array.append((sorted_score[j][0], sorted_score[j][1], cipher_array[sorted_score[j][0]], string_hex))
-        # [(key, score, string_decrypted, input_string), (), ()...] ordered by score
+        # [(key, score, string_decrypted, input_string), ...] ordered by score
+        result_array.append((sorted_score[j][0], sorted_score[j][1],
+                             cipher_array[sorted_score[j][0]], string_hex))
     return result_array
 
 
@@ -59,11 +63,16 @@ def xor_decrypt(string_hex):
 
 
 if __name__ == '__main__':
-    # The hex encoded string has been XOR'd against a single character. Find the key, decrypt the message.
-    input_string_hex = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
 
+    # The hex encoded string has been XOR'd against a single character.
+    # Find the key, decrypt the message.
+
+    input_string_hex = read_data('3', out_multiline=False)
+
+    # Crack XOR encryption
     final_result = xor_decrypt(input_string_hex)
-    print('final result:')
-    print('key:', final_result[0], '(' + chr(final_result[0]) + ')')
-    print('score:', final_result[1])
-    print('decrypted string:', final_result[2])
+
+    print(info(f'final result:'))
+    print(info(f'key: { final_result[0] } ({ chr(final_result[0]) })'))
+    print(info(f'score: { final_result[1] }'))
+    print(bold(good(f'decrypted string: { final_result[2] }')))

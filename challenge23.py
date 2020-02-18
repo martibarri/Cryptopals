@@ -30,8 +30,8 @@ def insert_bit(number, bit, position):
 
 def undo_right_shift_xor(result, l):
     """
-    Counting from the most significant bit in the left, when the right shift and then XOR are done, the first
-    "l" bits shifted of the result are the same as the original value before the operation.
+    Counting from the most significant bit in the left, when the right shift and then XOR are done,
+    the first "l" bits shifted of the result are the same as the original value before the operation.
     This function is the inverse of: result = y ^ (y >> l) to obtain the original 'y'
 
         original y		 2567808007 10011001000 0110110100 10000000111
@@ -51,8 +51,9 @@ def undo_right_shift_xor(result, l):
 
 def undo_left_shift_and_xor(result, shift, and_value):
     """
-    Counting from the most significant bit in the left.
-    This function is the inverse of: result = original ^ ((original << shift) & and_value) to obtain the original value.
+    Counting from the most significant bit in the left. This function is the
+    inverse of: result = original ^ ((original << shift) & and_value) 
+    to obtain the original value.
     """
     original = 0
     for i in range(32):
