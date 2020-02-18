@@ -2,4 +2,3 @@ offline_doc
 *.pyc
 .idea
 .vscode
-doc
