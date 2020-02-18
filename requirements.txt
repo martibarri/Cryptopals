@@ -1,0 +1,4 @@
+GF256==0.2.0
+termcolor
+git+https://github.com/martibarri/huepy
+flake8
