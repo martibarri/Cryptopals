@@ -1,7 +1,8 @@
 from base64 import b64decode
+from huepy import good, bad, run, info
 
 from challenge07 import aes128_ecb_encrypt
-from utils import pad_pkcs, generate_aes_key, divide_in_blocks, read_data
+from utils import pad_pkcs, generate_aes_key, read_data
 
 
 class EncryptionOracleECB:
@@ -65,18 +66,19 @@ if __name__ == '__main__':
 
     encryption_oracle = EncryptionOracleECB(data)
 
+    print(run("Discovering block size..."))
     block_size = discover_block_size(encryption_oracle)
-    print("Block size:", block_size, "bytes")
+    print(good(f"Block size: {block_size} bytes"))
     if not detect_ecb_mode(encryption_oracle):
-        print("The cipher is NOT using ECB mode")
+        print(bad("The cipher is NOT using ECB mode"))
     else:
-        print("The cipher is using ECB mode")
+        print(info("The cipher is using ECB mode"))
         decrypted_data = b''
         data_length = len(encryption_oracle.encrypt(b''))
         for i in range(data_length):
             next_byte = find_byte(encryption_oracle, block_size, decrypted_data)
             decrypted_data += next_byte
             # print(decrypted_data)
-            print("Decrypting: " + "{:4.2f}".format(100 * (i + 1) / data_length) + "%", end='\r')
-        print("Decryption complete!")
+            print(run("Decrypting: " + "{:4.2f}".format(100 * (i + 1) / data_length) + "%"), end='\r')
+        print(good("Decryption complete!"))
         print(decrypted_data.decode('utf-8'))
